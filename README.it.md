@@ -57,3 +57,7 @@ Cambio automatico di app (facoltativo, servono quelle app installate):
 - Una sola richiesta a Open-Meteo restituisce temperatura, codice meteo WMO e giorno/notte per tutte
   e tre le città.
 - Il cambio di app usa l'azione "Open App" di DeskThing, lanciata dall'app che è sullo schermo.
+
+## Licenza
+
+[MIT](LICENSE): puoi usarlo, modificarlo e condividerlo liberamente.

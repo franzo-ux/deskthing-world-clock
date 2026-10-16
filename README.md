@@ -56,3 +56,7 @@ Switching to other apps (optional, needs those apps installed):
 - One Open-Meteo request returns the current temperature, WMO weather code and day/night for all
   three cities.
 - App switching uses DeskThing's built-in "Open App" action from the app on screen.
+
+## License
+
+[MIT](LICENSE): you are free to use, modify and share it.
