@@ -5,6 +5,10 @@
 Un'app [DeskThing](https://deskthing.app) per lo Spotify **Car Thing**: l'ora di **tre località**,
 ognuna con la temperatura e un'**icona meteo neon animata**, in stile terminale.
 
+![Tre città con ora, temperatura e icone meteo neon animate](docs/clock.jpg)
+
+*Screenshot alla risoluzione del Car Thing (800×480), con città di esempio.*
+
 - Ora e fuso di ogni città, con la differenza rispetto alla prima ("−6 h", "domani +5 h").
   L'ora legale è gestita in automatico.
 - Meteo da [Open-Meteo](https://open-meteo.com) (gratuito, senza chiave), aggiornato ogni 15 minuti.

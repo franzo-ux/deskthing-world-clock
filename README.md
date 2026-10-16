@@ -5,6 +5,10 @@
 A [DeskThing](https://deskthing.app) app for the Spotify **Car Thing**: the time in **three places**,
 each with its temperature and an **animated neon weather icon**, in a terminal-style layout.
 
+![Three cities with time, temperature and animated neon weather icons](docs/clock.jpg)
+
+*Screenshot at the Car Thing resolution (800×480), with sample cities.*
+
 - Time and time zone of each city, with the difference from the first one ("−6 h", "tomorrow +5 h").
   Daylight saving time is handled automatically.
 - Weather from [Open-Meteo](https://open-meteo.com) (free, no API key), refreshed every 15 minutes.
