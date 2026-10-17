@@ -1,5 +1,6 @@
 import { createDeskThing } from "@deskthing/server";
 import { DESKTHING_EVENTS, SETTING_TYPES } from "@deskthing/types";
+import { isLang, LANGUAGE_OPTIONS, t, type Key, type Lang } from "../i18n";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -10,22 +11,23 @@ const DeskThing = createDeskThing();
 
 const DEFAULTS: City[] = [
   // defaults: change them in the app settings
-  { name: "Roma", country: "Italia", lat: 41.89193, lon: 12.51133, tz: "Europe/Rome" },
+  { name: "Rome", country: "Italy", lat: 41.89193, lon: 12.51133, tz: "Europe/Rome" },
   { name: "New York", country: "USA", lat: 40.71427, lon: -74.00597, tz: "America/New_York" },
-  { name: "Tokyo", country: "Giappone", lat: 35.6895, lon: 139.69171, tz: "Asia/Tokyo" },
+  { name: "Tokyo", country: "Japan", lat: 35.6895, lon: 139.69171, tz: "Asia/Tokyo" },
 ];
 const WEATHER_MS = 15 * 60 * 1000;
 
 let cities: City[] = DEFAULTS.map((c) => ({ ...c }));
 let weather: Weather[] = [null, null, null];
 let weatherAt = 0;
+let lang: Lang = "en";
 let weatherTimer: ReturnType<typeof setInterval> | null = null;
 let sendTimer: ReturnType<typeof setInterval> | null = null;
 
 // ---------------------------------------------------------------- jump to other apps
 // While the clock is on screen, important events switch the Car Thing to the
 // app that shows them: Pi questions / finished work -> Pi Status, a stack
-// down -> Homelab.
+// down -> Stack Status (app id "homelab").
 declare const __dirname: string;
 const HOMELAB_ALERT = join(__dirname, "..", "..", "homelab", "alert.json");
 let piUrl = "http://pi-host.local:8765/status"; // example: set yours in the app settings
@@ -51,8 +53,8 @@ async function watchPi() {
       next.set(s.pid, s.state);
       const prev = piStates.get(s.pid);
       if (piFirst || prev === undefined || !switchPi) continue;
-      if (prev !== "asking" && s.state === "asking") jump("pistatus", "Pi ti chiede · " + s.label);
-      else if (prev === "busy" && s.state === "idle") jump("pistatus", "Pi ha finito · " + s.label);
+      if (prev !== "asking" && s.state === "asking") jump("pistatus", t(lang, "piAsks", { label: s.label }));
+      else if (prev === "busy" && s.state === "idle") jump("pistatus", t(lang, "piDone", { label: s.label }));
     }
     piStates = next;
     piFirst = false;
@@ -75,7 +77,7 @@ function watchHomelab() {
   }
   if (at > lastAlertAt) {
     lastAlertAt = at;
-    if (switchHomelab) jump("homelab", "⚠ " + (alert?.text || "allarme Homelab"));
+    if (switchHomelab) jump("homelab", "⚠ " + (alert?.text || t(lang, "stackAlert")));
   }
 }
 
@@ -125,12 +127,17 @@ function send() {
       cities: cities.map((c) => ({ name: c.name, country: c.country, offset: offsetMinutes(c.tz) })),
       weather,
       weatherAt,
+      lang,
     },
   });
 }
 
 function readSettings(s: any) {
   if (!s) return;
+  if (isLang(s.language?.value) && s.language.value !== lang) {
+    lang = s.language.value;
+    send(); // the display follows at once; setting labels at next start
+  }
   if (typeof s.switch_pi?.value === "boolean") switchPi = s.switch_pi.value;
   if (typeof s.switch_homelab?.value === "boolean") switchHomelab = s.switch_homelab.value;
   if (typeof s.pi_url?.value === "string" && s.pi_url.value) piUrl = s.pi_url.value;
@@ -152,20 +159,35 @@ function readSettings(s: any) {
 }
 
 DeskThing.on(DESKTHING_EVENTS.START, async () => {
+  const before = (await DeskThing.getSettings()) as any;
+  if (isLang(before?.language?.value)) lang = before.language.value;
   const settings: any = {};
+  settings.language = {
+    id: "language",
+    label: t(lang, "setLanguage"),
+    description: t(lang, "setLanguageDesc"),
+    type: SETTING_TYPES.SELECT,
+    value: lang,
+    options: LANGUAGE_OPTIONS,
+  };
   DEFAULTS.forEach((c, i) => {
     const n = i + 1;
-    const add = (key: string, label: string, value: any, type = SETTING_TYPES.STRING) =>
-      (settings["city" + n + "_" + key] = { id: "city" + n + "_" + key, label: "Città " + n + " · " + label, type, value });
-    add("name", "nome", c.name);
-    add("country", "sottotitolo", c.country);
-    add("lat", "latitudine", String(c.lat));
-    add("lon", "longitudine", String(c.lon));
-    add("tz", "fuso orario (es. Europe/Rome)", c.tz);
+    const add = (key: string, value: any, type = SETTING_TYPES.STRING) =>
+      (settings["city" + n + "_" + key] = {
+        id: "city" + n + "_" + key,
+        label: t(lang, "setCity", { n, field: t(lang, ("f_" + key) as Key) }),
+        type,
+        value,
+      });
+    add("name", c.name);
+    add("country", c.country);
+    add("lat", String(c.lat));
+    add("lon", String(c.lon));
+    add("tz", c.tz);
   });
-  settings.switch_pi = { id: "switch_pi", label: "Passa a Pi Status (domande e lavori finiti)", type: SETTING_TYPES.BOOLEAN, value: true };
-  settings.switch_homelab = { id: "switch_homelab", label: "Passa a Homelab (servizi giù)", type: SETTING_TYPES.BOOLEAN, value: true };
-  settings.pi_url = { id: "pi_url", label: "Indirizzo stato Pi", type: SETTING_TYPES.STRING, value: piUrl };
+  settings.switch_pi = { id: "switch_pi", label: t(lang, "setSwitchPi"), type: SETTING_TYPES.BOOLEAN, value: true };
+  settings.switch_homelab = { id: "switch_homelab", label: t(lang, "setSwitchStack"), type: SETTING_TYPES.BOOLEAN, value: true };
+  settings.pi_url = { id: "pi_url", label: t(lang, "setPiUrl"), type: SETTING_TYPES.STRING, value: piUrl };
   await DeskThing.initSettings(settings);
   readSettings(await DeskThing.getSettings());
   fetchWeather();

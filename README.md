@@ -16,6 +16,7 @@ each with its temperature and an **animated neon weather icon**, in a terminal-s
 - While the clock is on screen, important events **switch the Car Thing** to the app that shows them:
   Pi asks a question or finishes a job → [Pi Status](https://github.com/franzo-ux/deskthing-pi-status);
   a service goes down → [Stack Status](https://github.com/franzo-ux/deskthing-stack-status).
+- **English or Italian**: pick the language in the settings.
 
 ## Requirements
 
@@ -31,10 +32,13 @@ npm run build          # → dist/worldclock
 npm run deploy         # copies the app into DeskThing and registers it
 ```
 
-Start DeskThing and open **Orologio** on the Car Thing. To update later: `npm run build`,
+Start DeskThing and open **World Clock** on the Car Thing. To update later: `npm run build`,
 `npm run deploy -- --files`, restart DeskThing.
 
-## Settings (DeskThing → Apps → Orologio)
+## Settings (DeskThing → Apps → World Clock)
+
+**Language**: **English** (default) or **Italiano** (the screen switches at once, the setting labels
+after restarting DeskThing).
 
 For each of the 3 cities: **name**, **subtitle** (country/region), **latitude**, **longitude** and
 **time zone** (IANA name, e.g. `Europe/Rome`, `America/New_York`, `Asia/Tokyo`).
@@ -49,9 +53,9 @@ Switching to other apps (optional, needs those apps installed):
 
 | Setting | Meaning |
 |---|---|
-| Passa a Pi Status | jump to Pi Status when Pi asks something or finishes |
-| Passa a Homelab | jump to Stack Status when a service goes down |
-| Indirizzo stato Pi | URL of the Pi status service, e.g. `http://pi-host.local:8765/status` |
+| Switch to Pi Status | jump to Pi Status when Pi asks something or finishes |
+| Switch to Stack Status | jump to Stack Status when a service goes down |
+| Pi status URL | URL of the Pi status service, e.g. `http://pi-host.local:8765/status` |
 
 ## How it works
 

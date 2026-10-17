@@ -1,4 +1,4 @@
-# World Clock (Orologio) per DeskThing
+# World Clock per DeskThing
 
 🇬🇧 [Read in English](README.md)
 
@@ -7,7 +7,7 @@ ognuna con la temperatura e un'**icona meteo neon animata**, in stile terminale.
 
 ![Tre città con ora, temperatura e icone meteo neon animate](docs/clock.jpg)
 
-*Screenshot alla risoluzione del Car Thing (800×480), con città di esempio.*
+*Screenshot alla risoluzione del Car Thing (800×480), con città di esempio, in inglese (lingua predefinita).*
 
 - Ora e fuso di ogni città, con la differenza rispetto alla prima ("−6 h", "domani +5 h").
   L'ora legale è gestita in automatico.
@@ -17,6 +17,7 @@ ognuna con la temperatura e un'**icona meteo neon animata**, in stile terminale.
 - Mentre l'orologio è sullo schermo, gli eventi importanti **cambiano app** sul Car Thing:
   Pi fa una domanda o finisce un lavoro → [Pi Status](https://github.com/franzo-ux/deskthing-pi-status);
   un servizio va giù → [Stack Status](https://github.com/franzo-ux/deskthing-stack-status).
+- **Italiano o inglese**: la lingua si sceglie nelle impostazioni (predefinita: inglese).
 
 ## Requisiti
 
@@ -32,10 +33,13 @@ npm run build          # → dist/worldclock
 npm run deploy         # copia l'app in DeskThing e la registra
 ```
 
-Riapri DeskThing e apri **Orologio** sul Car Thing. Per aggiornare in futuro: `npm run build`,
+Riapri DeskThing e apri **World Clock** sul Car Thing. Per aggiornare in futuro: `npm run build`,
 `npm run deploy -- --files`, riavvia DeskThing.
 
-## Impostazioni (DeskThing → App → Orologio)
+## Impostazioni (DeskThing → App → World Clock)
+
+**Language / Lingua**: **English** (predefinita) o **Italiano** (lo schermo cambia subito, le voci
+delle impostazioni dopo il riavvio di DeskThing).
 
 Per ognuna delle 3 città: **nome**, **sottotitolo** (paese/regione), **latitudine**, **longitudine** e
 **fuso orario** (nome IANA, es. `Europe/Rome`, `America/New_York`, `Asia/Tokyo`).
@@ -51,7 +55,7 @@ Cambio automatico di app (facoltativo, servono quelle app installate):
 | Impostazione | Significato |
 |---|---|
 | Passa a Pi Status | passa a Pi Status quando Pi ti chiede qualcosa o finisce |
-| Passa a Homelab | passa a Stack Status quando un servizio va giù |
+| Passa a Stack Status | passa a Stack Status quando un servizio va giù |
 | Indirizzo stato Pi | URL del servizio di stato di Pi, es. `http://pi-host.local:8765/status` |
 
 ## Come funziona

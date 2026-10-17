@@ -1,8 +1,9 @@
 import { createDeskThing } from "@deskthing/client";
+import { isLang, t, type Key, type Lang } from "../i18n";
 
 type CityInfo = { name: string; country: string; offset: number };
 type Weather = { temp: number; code: number; isDay: boolean } | null;
-type Clock = { now: number; cities: CityInfo[]; weather: Weather[]; weatherAt: number };
+type Clock = { now: number; cities: CityInfo[]; weather: Weather[]; weatherAt: number; lang?: Lang };
 
 const DeskThing = createDeskThing();
 
@@ -14,6 +15,8 @@ const $ = (id: string) => document.getElementById(id) as HTMLElement;
 
 let data: Clock | null = null;
 let skew = 0; // PC time minus Car Thing time (the device clock is not synced)
+let lang: Lang = "en";
+const tr = (key: Key, vars?: Record<string, string | number>) => t(lang, key, vars);
 
 // ---------------------------------------------------------------- neon icons
 
@@ -37,17 +40,17 @@ const ICONS: Record<string, string> = {
   fog: svg('<line class="fog1" stroke="#9aa6b2" x1="12" y1="24" x2="52" y2="24"/><line class="fog2" stroke="#9aa6b2" x1="8" y1="32" x2="48" y2="32"/><line class="fog1" stroke="#9aa6b2" x1="16" y1="40" x2="56" y2="40"/>'),
 };
 
-/** WMO weather code -> icon + Italian description. */
+/** WMO weather code -> icon + short description. */
 function describe(w: Weather): { icon: string; text: string } {
   if (!w) return { icon: "", text: "" };
   const c = w.code;
-  if (c === 0) return { icon: w.isDay ? "sun" : "moon", text: "sereno" };
-  if (c === 1 || c === 2) return { icon: w.isDay ? "pcd" : "pcn", text: c === 1 ? "quasi sereno" : "poco nuvoloso" };
-  if (c === 3) return { icon: "cloud", text: "coperto" };
-  if (c === 45 || c === 48) return { icon: "fog", text: "nebbia" };
-  if ((c >= 51 && c <= 57) || (c >= 61 && c <= 67) || (c >= 80 && c <= 82)) return { icon: "rain", text: c < 60 ? "pioviggine" : c >= 80 ? "rovesci" : "pioggia" };
-  if ((c >= 71 && c <= 77) || c === 85 || c === 86) return { icon: "snow", text: "neve" };
-  if (c >= 95) return { icon: "storm", text: "temporale" };
+  if (c === 0) return { icon: w.isDay ? "sun" : "moon", text: tr("w_clear") };
+  if (c === 1 || c === 2) return { icon: w.isDay ? "pcd" : "pcn", text: c === 1 ? tr("w_mainlyClear") : tr("w_partlyCloudy") };
+  if (c === 3) return { icon: "cloud", text: tr("w_overcast") };
+  if (c === 45 || c === 48) return { icon: "fog", text: tr("w_fog") };
+  if ((c >= 51 && c <= 57) || (c >= 61 && c <= 67) || (c >= 80 && c <= 82)) return { icon: "rain", text: c < 60 ? tr("w_drizzle") : c >= 80 ? tr("w_showers") : tr("w_rain") };
+  if ((c >= 71 && c <= 77) || c === 85 || c === 86) return { icon: "snow", text: tr("w_snow") };
+  if (c >= 95) return { icon: "storm", text: tr("w_storm") };
   return { icon: "cloud", text: "" };
 }
 
@@ -61,12 +64,12 @@ function localParts(utcMs: number, offsetMin: number) {
 }
 
 function diffLabel(i: number, now: number): string {
-  if (!data || i === 0) return "oggi";
+  if (!data || i === 0) return tr("today");
   const base = data.cities[0];
   const c = data.cities[i];
   const hours = (c.offset - base.offset) / 60;
   const dayDiff = localParts(now, c.offset).day - localParts(now, base.offset).day;
-  const day = dayDiff > 0 ? "domani " : dayDiff < 0 ? "ieri " : "";
+  const day = dayDiff > 0 ? tr("tomorrow") + " " : dayDiff < 0 ? tr("yesterday") + " " : "";
   const h = (hours > 0 ? "+" : hours < 0 ? "−" : "±") + (Math.abs(hours) % 1 ? Math.abs(hours).toFixed(1) : Math.abs(hours)) + " h";
   return day + h;
 }
@@ -106,13 +109,17 @@ function render() {
   });
   if (data.weatherAt) {
     const u = localParts(data.weatherAt, data.cities[0].offset);
-    $("upd").textContent = "meteo open-meteo · agg. " + two(u.h) + ":" + two(u.m);
+    $("upd").textContent = tr("updated", { time: two(u.h) + ":" + two(u.m) });
   }
 }
 
 DeskThing.on("clock", (msg: any) => {
   data = msg.payload as Clock;
   skew = data.now - Date.now();
+  if (isLang(data.lang) && data.lang !== lang) {
+    lang = data.lang;
+    document.documentElement.lang = lang;
+  }
   render();
 });
 
