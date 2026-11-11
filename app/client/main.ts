@@ -13,6 +13,20 @@ const DeskThing = createDeskThing();
 document.addEventListener("mousedown", (e) => e.preventDefault(), true);
 const $ = (id: string) => document.getElementById(id) as HTMLElement;
 
+// Write to the page only when something changed: rebuilding the same text or
+// HTML every second leaves garbage DOM nodes that the Car Thing's Chrome
+// collects too late (its memory watchdog kills Chrome first).
+const lastHtml = new WeakMap<Element, string>();
+function setHtml(el: Element, html: string) {
+  if (lastHtml.get(el) === html) return;
+  lastHtml.set(el, html);
+  el.innerHTML = html;
+}
+function setText(el: Element, text: string) {
+  lastHtml.delete(el); // the element no longer holds the last HTML written
+  if (el.textContent !== text) el.textContent = text;
+}
+
 let data: Clock | null = null;
 let skew = 0; // PC time minus Car Thing time (the device clock is not synced)
 let lang: Lang = "en";
@@ -96,20 +110,20 @@ function render() {
     const w = data!.weather[i];
     const isNight = w ? !w.isDay : t.h < 7 || t.h >= 19;
     $("row" + i).className = "row " + (isNight ? "night" : "day");
-    $("name" + i).textContent = c.name;
-    $("sub" + i).innerHTML = (c.country ? c.country + " · " : "") + '<span class="dn">' + diffLabel(i, now) + "</span>";
-    $("time" + i).innerHTML = two(t.h) + '<span class="colon">:</span>' + two(t.m);
+    setText($("name" + i), c.name);
+    setHtml($("sub" + i), (c.country ? c.country + " · " : "") + '<span class="dn">' + diffLabel(i, now) + "</span>");
+    setHtml($("time" + i), two(t.h) + '<span class="colon">:</span>' + two(t.m));
     const d = describe(w);
     if (renderedIcons[i] !== d.icon) {
       $("ic" + i).innerHTML = d.icon ? ICONS[d.icon] : "";
       renderedIcons[i] = d.icon;
     }
-    $("temp" + i).textContent = w ? w.temp + "°C" : "–";
-    $("desc" + i).textContent = d.text;
+    setText($("temp" + i), w ? w.temp + "°C" : "–");
+    setText($("desc" + i), d.text);
   });
   if (data.weatherAt) {
     const u = localParts(data.weatherAt, data.cities[0].offset);
-    $("upd").textContent = tr("updated", { time: two(u.h) + ":" + two(u.m) });
+    setText($("upd"), tr("updated", { time: two(u.h) + ":" + two(u.m) }));
   }
 }
 
@@ -126,7 +140,7 @@ DeskThing.on("clock", (msg: any) => {
 // Something happened elsewhere: glitchy banner, then open the app that shows it.
 DeskThing.on("switch", (msg: any) => {
   const p = msg.payload || {};
-  $("alert-text").textContent = p.text || "";
+  setText($("alert-text"), p.text || "");
   $("alert").className = "alert show";
   setTimeout(() => {
     try {
